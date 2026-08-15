@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>Hank's Cleaners</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A227;
+    --gold-light: #E8C14A;
+    --green-dark: #2A4A2E;
+    --green-mid: #3B6B40;
+    --white: #FAFAF7;
+    --off-white: #F2EFE6;
+    --text-dark: #1A1A1A;
+  }
+  body { font-family: 'Lora', Georgia, serif; background: var(--white); color: var(--text-dark); overflow-x: hidden; color-scheme: light; }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--green-dark);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 48px; height: 64px; position: sticky; top: 0; z-index: 200;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .nav-logo { font-family: 'Oswald', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; flex-shrink: 0; }
+  .nav-logo span { color: var(--white); }
+
+  /* Desktop links */
+  .nav-links { display: flex; gap: 28px; list-style: none; align-items: center; }
+  .nav-links a { font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--off-white); text-decoration: none; opacity: 0.85; transition: opacity 0.2s, color 0.2s; }
+  .nav-links a:hover { opacity: 1; color: var(--gold-light); }
+  .nav-admin-btn { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green-dark); background: var(--gold); border: none; padding: 7px 16px; cursor: pointer; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
+  .nav-admin-btn:hover { background: var(--gold-light); }
+
+  /* Hamburger button — hidden on desktop */
+  .nav-hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 8px; }
+  .nav-hamburger span { display: block; width: 24px; height: 2px; background: var(--gold); border-radius: 2px; transition: transform 0.25s, opacity 0.25s; }
+  .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+  .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* Mobile nav right side wrapper */
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+
+  /* Mobile dropdown */
+  .nav-dropdown {
+    display: none;
+    position: absolute;
+    top: 64px; left: 0; right: 0;
+    background: var(--green-dark);
+    border-top: 2px solid var(--gold);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    z-index: 199;
+    flex-direction: column;
+    padding: 8px 0 16px;
+  }
+  .nav-dropdown.open { display: flex; }
+  .nav-dropdown a {
+    font-family: 'Oswald', sans-serif; font-size: 0.95rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--off-white); text-decoration: none;
+    padding: 14px 28px; border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-dropdown a:hover { background: rgba(201,162,39,0.1); color: var(--gold-light); }
+  .nav-dropdown .dropdown-login {
+    margin: 12px 28px 0;
+    font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--green-dark); background: var(--gold);
+    border: none; padding: 12px 20px; cursor: pointer; font-weight: 600;
+    transition: background 0.2s; text-align: center;
+  }
+  .nav-dropdown .dropdown-login:hover { background: var(--gold-light); }
+
+  /* ── HERO ── */
+  .hero { background: var(--green-dark); position: relative; overflow: hidden; padding: 80px 48px 90px; display: flex; align-items: center; gap: 64px; min-height: 420px; }
+  .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 400px; height: 400px; border-radius: 50%; border: 80px solid rgba(201,162,39,0.08); }
+  .hero::after { content: ''; position: absolute; bottom: -80px; left: 20%; width: 300px; height: 300px; border-radius: 50%; border: 60px solid rgba(201,162,39,0.06); }
+  .hero-text { flex: 1; position: relative; z-index: 1; }
+  .hero-eyebrow { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+  .hero-title { font-family: 'Oswald', sans-serif; font-size: clamp(2.8rem, 5vw, 4.2rem); font-weight: 700; color: var(--white); line-height: 1.05; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .hero-title .gold { color: var(--gold); }
+  .hero-subtitle { font-family: 'Lora', serif; font-style: italic; font-size: 1.1rem; color: rgba(250,250,247,0.65); margin-bottom: 36px; }
+  .hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; }
+  .btn-primary { background: var(--gold); color: var(--green-dark); font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; padding: 14px 32px; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.2s; }
+  .btn-primary:hover { background: var(--gold-light); }
+  .btn-outline { border: 2px solid rgba(201,162,39,0.5); color: var(--gold); font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; padding: 12px 28px; background: transparent; cursor: pointer; text-decoration: none; display: inline-block; transition: border-color 0.2s, color 0.2s; }
+  .btn-outline:hover { border-color: var(--gold-light); color: var(--gold-light); }
+  .hero-badge { flex-shrink: 0; width: 180px; height: 180px; border-radius: 50%; background: rgba(201,162,39,0.1); border: 3px solid rgba(201,162,39,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; position: relative; z-index: 1; }
+  .hero-badge .badge-num { font-family: 'Oswald', sans-serif; font-size: 2.8rem; font-weight: 700; color: var(--gold); line-height: 1; }
+  .hero-badge .badge-text { font-family: 'Lora', serif; font-style: italic; font-size: 0.75rem; color: rgba(250,250,247,0.6); margin-top: 6px; line-height: 1.4; }
+
+  /* ── STRIP ── */
+  .strip { background: var(--gold); padding: 14px 48px; display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; align-items: center; }
+  .strip-item { font-family: 'Oswald', sans-serif; font-size: 0.82rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green-dark); font-weight: 600; }
+  .strip-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green-dark); opacity: 0.4; }
+
+  /* ── MILITARY COMPARISON BANNER ── */
+  .mil-banner {
+    background: var(--off-white);
+    border-top: 4px solid var(--gold);
+    padding: 72px 48px;
+  }
+  .mil-banner-inner { max-width: 1100px; margin: 0 auto; }
+  .mil-banner-eyebrow {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--green-mid);
+    margin-bottom: 12px;
+  }
+  .mil-banner-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+    font-weight: 700;
+    color: var(--green-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
+    margin-bottom: 40px;
+  }
+  .mil-banner-title span { color: var(--gold); }
+  .mil-banner-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    margin-bottom: 40px;
+  }
+  .mil-col { padding: 32px 28px; }
+  .mil-col-hank { background: var(--green-dark); }
+  .mil-col-base { background: #e8e4d9; }
+  .mil-col-header { margin-bottom: 24px; }
+  .mil-col-badge {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(201,162,39,0.4);
+    padding: 4px 14px;
+    display: inline-block;
+  }
+  .mil-col-badge-dim {
+    color: #888;
+    border-color: #ccc;
+  }
+  .mil-col-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .mil-col-list li {
+    font-family: 'Lora', serif;
+    font-size: 0.9rem;
+    color: rgba(250,250,247,0.85);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    line-height: 1.5;
+  }
+  .mil-col-list-dim li { color: #666; }
+  .mil-check {
+    color: var(--gold);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .mil-x {
+    color: #bbb;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .mil-banner-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding-top: 32px;
+    border-top: 1px solid #d8d4c9;
+  }
+  .mil-banner-footer p {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--green-dark);
+    max-width: 560px;
+    line-height: 1.6;
+  }
+  .mil-banner-btn {
+    background: var(--green-dark);
+    color: var(--gold);
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 12px 28px;
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .mil-banner-btn:hover { background: var(--green-mid); }
+
+  @media (max-width: 700px) {
+    .mil-banner { padding: 56px 24px; }
+    .mil-banner-cols { grid-template-columns: 1fr; }
+    .mil-banner-footer { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ── SERVICES ── */
+  .services-section { background: var(--off-white); padding: 80px 48px; }
+  .section-label { font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--green-mid); margin-bottom: 12px; }
+  .section-title { font-family: 'Oswald', sans-serif; font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 700; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 48px; }
+  .section-title span { color: var(--gold); }
+  .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2px; }
+  .service-card { background: var(--white); padding: 36px 28px; border-top: 3px solid transparent; transition: border-color 0.25s, transform 0.2s, box-shadow 0.2s; }
+  .service-card:hover { border-top-color: var(--gold); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .service-icon { width: 44px; height: 44px; background: var(--green-dark); border-radius: 2px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1.2rem; }
+  .service-name { font-family: 'Oswald', sans-serif; font-size: 1.05rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--green-dark); margin-bottom: 10px; }
+  .service-desc { font-size: 0.88rem; color: #555; line-height: 1.65; }
+
+  /* ── MILITARY ── */
+  .military-section { background: var(--green-dark); padding: 80px 48px; }
+  .military-inner { display: flex; gap: 72px; align-items: flex-start; max-width: 1100px; margin: 0 auto; }
+  .military-text { flex: 1.1; }
+  .military-title { font-family: 'Oswald', sans-serif; font-size: clamp(1.8rem, 2.5vw, 2.6rem); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #FAFAF7; margin-bottom: 20px; line-height: 1.1; }
+  .military-title span { color: var(--gold); }
+  .military-body { font-size: 0.95rem; color: rgba(240,236,226,0.75); line-height: 1.85; max-width: 420px; }
+  .military-services { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .mil-item { display: flex; align-items: flex-start; gap: 18px; background: rgba(255,255,255,0.07); border-left: 3px solid var(--gold); padding: 20px 24px; transition: background 0.2s; }
+  .mil-item:hover { background: rgba(201,162,39,0.12); }
+  .mil-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+  .mil-name { font-family: 'Oswald', sans-serif; font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 4px; }
+  .mil-desc { font-size: 0.83rem; color: rgba(240,236,226,0.7); line-height: 1.55; }
+
+  /* ── ABOUT ── */
+  .about-section { background: var(--green-dark); padding: 80px 48px; display: flex; gap: 72px; align-items: center; }
+  .about-text .section-label { color: var(--gold-light); opacity: 0.7; }
+  .about-text { flex: 1.2; }
+  .about-title { font-family: 'Oswald', sans-serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--white); margin-bottom: 20px; }
+  .about-title span { color: var(--gold); }
+  .about-body { font-size: 0.95rem; color: rgba(250,250,247,0.7); line-height: 1.8; max-width: 480px; }
+  .about-stats { flex: 0.8; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+  .stat-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(201,162,39,0.15); padding: 28px 24px; text-align: center; }
+  .stat-num { font-family: 'Oswald', sans-serif; font-size: 2rem; font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: 6px; }
+  .stat-lbl { font-size: 0.78rem; color: rgba(250,250,247,0.5); letter-spacing: 0.08em; text-transform: uppercase; font-family: 'Oswald', sans-serif; }
+
+  /* ── CONTACT ── */
+  .contact-section { background: var(--off-white); padding: 80px 48px; display: flex; gap: 72px; align-items: flex-start; }
+  .contact-info { flex: 1; }
+  .contact-title { font-family: 'Oswald', sans-serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--green-dark); margin-bottom: 36px; }
+  .contact-title span { color: var(--gold); }
+  .contact-item { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
+  .contact-icon { width: 40px; height: 40px; background: var(--green-dark); border-radius: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+  .contact-detail-label { font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--green-mid); margin-bottom: 4px; }
+  .contact-detail-value { font-size: 1rem; color: var(--text-dark); line-height: 1.5; }
+  .contact-detail-value a { color: var(--green-dark); text-decoration: none; font-weight: 500; }
+  .hours-box { flex: 0.8; background: var(--green-dark); padding: 40px 36px; }
+  .hours-title { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 24px; opacity: 0.85; }
+  .hours-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 0.88rem; }
+  .hours-row.today { background: rgba(201,162,39,0.1); margin: 0 -12px; padding: 10px 12px; border-radius: 2px; }
+  .hours-row.today .hours-day { color: var(--gold); }
+  .hours-row.today .hours-time { color: var(--gold-light); font-weight: 600; }
+  .hours-day { color: rgba(250,250,247,0.55); font-family: 'Oswald', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8rem; }
+  .hours-time { color: var(--white); font-family: 'Lora', serif; }
+  .hours-closed { color: rgba(250,250,247,0.3) !important; font-style: italic; }
+
+  /* ── FOOTER ── */
+  footer { background: #111; padding: 28px 48px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .footer-logo { font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 700; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; }
+  .footer-logo span { color: rgba(255,255,255,0.4); }
+  .footer-copy { font-size: 0.75rem; color: rgba(255,255,255,0.25); letter-spacing: 0.05em; }
+
+  /* ── LOGIN ── */
+  .login-wrap { min-height: 100vh; background: var(--green-dark); display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-card { background: var(--white); border-radius: 4px; width: 100%; max-width: 400px; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.35); }
+  .login-header { background: var(--green-dark); padding: 32px 36px; border-bottom: 3px solid var(--gold); }
+  .login-logo { font-family: 'Oswald', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; }
+  .login-logo span { color: rgba(250,250,247,0.5); }
+  .login-sub { font-family: 'Lora', serif; font-style: italic; font-size: 0.85rem; color: rgba(250,250,247,0.4); margin-top: 4px; }
+  .login-body { padding: 36px; }
+  .login-label { font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--green-mid); margin-bottom: 6px; display: block; }
+  .login-input { width: 100%; padding: 12px 14px; border: 1px solid #ddd; font-family: 'Lora', serif; font-size: 1rem; color: var(--text-dark); background: var(--off-white); margin-bottom: 20px; outline: none; transition: border-color 0.2s; }
+  .login-input:focus { border-color: var(--green-dark); }
+  .login-btn { width: 100%; background: var(--green-dark); color: var(--gold); font-family: 'Oswald', sans-serif; font-size: 0.9rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; padding: 14px; border: none; cursor: pointer; transition: background 0.2s; }
+  .login-btn:hover { background: var(--green-mid); }
+  .login-error { font-size: 0.82rem; color: #c0392b; margin-bottom: 16px; font-style: italic; display: none; }
+  .login-back { text-align: center; margin-top: 16px; font-size: 0.8rem; color: #999; }
+  .login-back a { color: var(--green-mid); text-decoration: none; cursor: pointer; }
+
+  /* ── ADMIN ── */
+  .admin-wrap { min-height: 100vh; background: #f0ede4; }
+  .admin-nav { background: var(--green-dark); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .admin-nav-logo { font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 700; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; }
+  .admin-nav-logo span { color: rgba(250,250,247,0.4); font-weight: 400; }
+  .admin-nav-right { display: flex; align-items: center; gap: 16px; }
+  .admin-nav-right span { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(250,250,247,0.45); }
+  .admin-logout { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); background: none; border: 1px solid rgba(201,162,39,0.35); padding: 5px 14px; cursor: pointer; transition: background 0.2s; }
+  .admin-logout:hover { background: rgba(201,162,39,0.1); }
+  .admin-body { padding: 32px; max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+  /* stats row */
+  .admin-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .admin-stat { background: var(--white); border-radius: 4px; padding: 20px 24px; border-left: 4px solid var(--green-dark); }
+  .admin-stat-num { font-family: 'Oswald', sans-serif; font-size: 2rem; font-weight: 700; color: var(--green-dark); line-height: 1; }
+  .admin-stat-lbl { font-family: 'Oswald', sans-serif; font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: #888; margin-top: 4px; }
+
+  /* add order */
+  .admin-card { background: var(--white); border-radius: 4px; padding: 28px 32px; }
+  .admin-card-title { font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--green-mid); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .admin-card-title::after { content: ''; flex: 1; height: 1px; background: #e8e4d9; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-family: 'Oswald', sans-serif; font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: #888; }
+  .form-input { padding: 10px 12px; border: 1px solid #ddd; font-family: 'Lora', serif; font-size: 0.9rem; color: var(--text-dark); background: var(--off-white); outline: none; transition: border-color 0.2s; }
+  .form-input:focus { border-color: var(--green-dark); }
+  .form-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .btn-green { background: var(--green-dark); color: var(--gold); font-family: 'Oswald', sans-serif; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; padding: 11px 24px; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+  .btn-green:hover { background: var(--green-mid); }
+  .btn-gold { background: var(--gold); color: var(--green-dark); font-family: 'Oswald', sans-serif; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; padding: 11px 24px; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-outline-sm { background: none; border: 1px solid #ccc; color: #666; font-family: 'Oswald', sans-serif; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s; white-space: nowrap; }
+  .btn-outline-sm:hover { border-color: var(--green-dark); color: var(--green-dark); }
+
+  /* queue */
+  .queue-table { width: 100%; border-collapse: collapse; }
+  .queue-table th { font-family: 'Oswald', sans-serif; font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: #999; padding: 0 16px 12px; text-align: left; border-bottom: 1px solid #e8e4d9; }
+  .queue-table td { padding: 14px 16px; font-size: 0.88rem; border-bottom: 1px solid #f0ede4; vertical-align: middle; }
+  .queue-table tr:last-child td { border-bottom: none; }
+  .queue-table tr:hover td { background: #faf7f0; }
+  .badge { display: inline-block; font-family: 'Oswald', sans-serif; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 10px; border-radius: 2px; }
+  .badge-ready { background: #d4edda; color: #1a5c2a; }
+  .badge-notified { background: #cce5ff; color: #0c4a8a; }
+  .badge-progress { background: #fff3cd; color: #7a5800; }
+  .badge-done { background: #e8e4d9; color: #666; }
+  .action-btn { font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 14px; border: none; cursor: pointer; transition: background 0.15s; margin-right: 6px; }
+  .action-notify { background: var(--green-dark); color: var(--gold); }
+  .action-notify:hover { background: var(--green-mid); }
+  .action-done { background: #e8e4d9; color: #555; }
+  .action-done:hover { background: #d4d0c5; }
+
+  /* notify panel */
+  .notify-panel { background: var(--green-dark); border-radius: 4px; padding: 28px 32px; }
+  .notify-title { font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; opacity: 0.85; }
+  .notify-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .notify-label { font-family: 'Oswald', sans-serif; font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(250,250,247,0.45); margin-bottom: 6px; display: block; }
+  .notify-input { width: 100%; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.15); font-family: 'Lora', serif; font-size: 0.9rem; color: var(--white); background: rgba(255,255,255,0.07); outline: none; transition: border-color 0.2s; }
+  .notify-input:focus { border-color: var(--gold); }
+  .notify-textarea { width: 100%; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.15); font-family: 'Lora', serif; font-size: 0.88rem; color: var(--white); background: rgba(255,255,255,0.07); outline: none; resize: none; transition: border-color 0.2s; line-height: 1.6; }
+  .notify-textarea:focus { border-color: var(--gold); }
+  .notify-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 12px; }
+  .notify-char { font-size: 0.78rem; color: rgba(250,250,247,0.35); font-style: italic; }
+  .notify-success { background: rgba(201,162,39,0.12); border: 1px solid rgba(201,162,39,0.3); padding: 10px 16px; border-radius: 2px; font-size: 0.85rem; color: var(--gold-light); margin-top: 12px; display: none; font-style: italic; }
+
+  /* scanner */
+  .scanner-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+  .scanner-overlay.open { display: flex; }
+  .scanner-box { background: #111; border-radius: 8px; overflow: hidden; width: 320px; }
+  .scanner-header { background: var(--green-dark); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .scanner-header span { font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+  .scanner-close { background: none; border: none; color: rgba(250,250,247,0.5); font-size: 1.2rem; cursor: pointer; }
+  #scanner-viewport { width: 320px; height: 240px; position: relative; overflow: hidden; background: #000; }
+  #scanner-viewport video { width: 100%; height: 100%; object-fit: cover; }
+  #scanner-viewport canvas { position: absolute; inset: 0; }
+  .scanner-hint { font-family: 'Lora', serif; font-style: italic; font-size: 0.82rem; color: rgba(250,250,247,0.5); text-align: center; padding: 12px 20px; }
+  .scanner-result { font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.08em; color: var(--gold); text-align: center; padding: 0 20px 14px; min-height: 24px; }
+
+  /* responsive */
+  @media (min-width: 701px) {
+    #nav-mobile-right { display: none; }
+    .nav-dropdown { display: none !important; }
+  }
+  @media (max-width: 700px) {
+    nav { padding: 0 20px; }
+    #nav-desktop { display: none; }
+    #nav-mobile-right { display: flex; }
+    .hero { flex-direction: column; padding: 48px 24px 56px; gap: 36px; text-align: center; }
+    .hero-ctas { justify-content: center; }
+    .hero-badge { width: 140px; height: 140px; }
+    .strip { padding: 12px 20px; gap: 20px; }
+    .services-section, .about-section, .contact-section, .military-section { padding: 56px 24px; }
+    .military-inner { flex-direction: column; gap: 36px; }
+    .about-section { flex-direction: column; gap: 40px; }
+    .about-stats { width: 100%; }
+    .contact-section { flex-direction: column; gap: 40px; }
+    .hours-box { width: 100%; }
+    footer { padding: 20px 24px; flex-direction: column; text-align: center; }
+    .admin-stats { grid-template-columns: 1fr 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .notify-form-row { grid-template-columns: 1fr; }
+    .admin-body { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     VIEW: PUBLIC WEBSITE
+══════════════════════════════════════════════ -->
+<div id="view-site" class="view active">
+
+  <nav id="main-nav">
+    <div class="nav-logo" onclick="showView('view-site')">Hank's <span>Cleaners</span></div>
+
+    <!-- Desktop links -->
+    <ul class="nav-links" id="nav-desktop">
+      <li><a href="#services">Services</a></li>
+      <li><a href="#military">Uniform Care</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><button class="nav-admin-btn" onclick="showView('view-login')">Staff Login</button></li>
+    </ul>
+
+    <!-- Mobile right: Staff Login always visible + hamburger -->
+    <div class="nav-right" id="nav-mobile-right">
+      <button class="nav-admin-btn" onclick="showView('view-login')" id="nav-mobile-login">Staff Login</button>
+      <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileNav()" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile dropdown -->
+  <div class="nav-dropdown" id="nav-dropdown">
+    <a href="#services" onclick="closeMobileNav()">Services</a>
+    <a href="#military" onclick="closeMobileNav()">Uniform Care</a>
+    <a href="#about" onclick="closeMobileNav()">About</a>
+    <a href="#contact" onclick="closeMobileNav()">Contact</a>
+  </div>
+
+  <section class="hero">
+    <div class="hero-text">
+      <div class="hero-eyebrow">North Chicago's Neighborhood Cleaners</div>
+      <h1 class="hero-title"><span class="gold">Hank's</span><br>Cleaners</h1>
+      <p class="hero-subtitle">Dry cleaning &amp; tailor repairs, done right.</p>
+      <div class="hero-ctas">
+        <a href="tel:8476880036" class="btn-primary">📞 (847) 688-0036</a>
+        <a href="https://maps.google.com/?q=2219+Martin+Luther+King+Jr+Dr+North+Chicago+IL+60064" target="_blank" class="btn-outline">Get Directions</a>
+      </div>
+    </div>
+    <div class="hero-badge">
+      <div class="badge-num">4.3★</div>
+      <div class="badge-text">Rated on Yelp by our community</div>
+    </div>
+  </section>
+
+  <div class="strip">
+    <div class="strip-item">Dry Cleaning</div>
+    <div class="strip-dot"></div>
+    <div class="strip-item">Tailor Repairs</div>
+    <div class="strip-dot"></div>
+    <div class="strip-item">Uniform Services</div>
+    <div class="strip-dot"></div>
+    <div class="strip-item">Proudly Serving Those Who Serve</div>
+  </div>
+
+  <!-- MILITARY COMPARISON BANNER -->
+  <section class="mil-banner">
+    <div class="mil-banner-inner">
+      <div class="mil-banner-headline">
+        <div class="mil-banner-eyebrow">For Those in Uniform</div>
+        <h2 class="mil-banner-title">Your uniform reflects your standards.<br><span>So does where you take it.</span></h2>
+      </div>
+      <div class="mil-banner-cols">
+        <div class="mil-col mil-col-hank">
+          <div class="mil-col-header">
+            <span class="mil-col-badge">Hank's Cleaners</span>
+          </div>
+          <ul class="mil-col-list">
+            <li><span class="mil-check">✓</span>Same-day or next-day turnaround</li>
+            <li><span class="mil-check">✓</span>Every order handled individually</li>
+            <li><span class="mil-check">✓</span>Inspection-ready pressing & folding</li>
+            <li><span class="mil-check">✓</span>Neckerchief & patch care included</li>
+            <li><span class="mil-check">✓</span>Text notification when your order is ready</li>
+            <li><span class="mil-check">✓</span>Minutes from the North Shore</li>
+          </ul>
+        </div>
+        <div class="mil-col mil-col-base">
+          <div class="mil-col-header">
+            <span class="mil-col-badge mil-col-badge-dim">Base Laundry Services</span>
+          </div>
+          <ul class="mil-col-list mil-col-list-dim">
+            <li><span class="mil-x">✗</span>Extended processing — days, not hours</li>
+            <li><span class="mil-x">✗</span>Bulk processing with other orders</li>
+            <li><span class="mil-x">✗</span>No guarantee on press quality</li>
+            <li><span class="mil-x">✗</span>Limited specialty uniform services</li>
+            <li><span class="mil-x">✗</span>No order status updates</li>
+            <li><span class="mil-x">✗</span>Queue times vary — no set pickup</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mil-banner-footer">
+        <p>"When your uniform needs to be right — and right now — Hank's is the call."</p>
+        <a href="tel:8476880036" class="mil-banner-btn">📞 (847) 688-0036</a>
+      </div>
+    </div>
+  </section>
+    <div class="section-label">What We Offer</div>
+    <div class="section-title">Our <span>Services</span></div>
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon">👔</div>
+        <div class="service-name">Dry Cleaning</div>
+        <p class="service-desc">Professional cleaning for suits, dresses, coats, and delicate garments — handled with care and returned crisp.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">🧵</div>
+        <div class="service-name">Tailor Repairs</div>
+        <p class="service-desc">Alterations, hemming, zipper replacements, and expert repairs to give your clothes a second life.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">🫧</div>
+        <div class="service-name">Wash &amp; Fold</div>
+        <p class="service-desc">Drop off your laundry and pick it up clean, folded, and ready to wear — no fuss required.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">🧥</div>
+        <div class="service-name">Specialty Items</div>
+        <p class="service-desc">Wedding gowns, comforters, leather, and other specialty garments cleaned with the attention they deserve.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MILITARY SERVICE SECTION -->
+  <section class="military-section" id="military">
+    <div class="military-inner">
+      <div class="military-text">
+        <div class="section-label" style="color: var(--gold-light); opacity: 0.8;">Uniform &amp; Service Care</div>
+        <h2 class="military-title">Serving Those<br>Who <span>Serve</span></h2>
+        <p class="military-body">For years, Hank's Cleaners has been a trusted resource for the men and women in uniform stationed along the North Shore. We understand that appearance and attention to detail aren't just a standard — they're a way of life. We treat every item with the same precision and pride you bring to your service.</p>
+      </div>
+      <div class="military-services">
+        <div class="mil-item">
+          <div class="mil-icon">🎗️</div>
+          <div>
+            <div class="mil-name">Neckerchief Care</div>
+            <p class="mil-desc">Cleaned, pressed, and folded to regulation standard.</p>
+          </div>
+        </div>
+        <div class="mil-item">
+          <div class="mil-icon">⭐</div>
+          <div>
+            <div class="mil-name">Patch &amp; Insignia</div>
+            <p class="mil-desc">Expert handling of rank patches, badges, and uniform insignia.</p>
+          </div>
+        </div>
+        <div class="mil-item">
+          <div class="mil-icon">🫧</div>
+          <div>
+            <div class="mil-name">Uniform Cleaning</div>
+            <p class="mil-desc">Full uniform dry cleaning and pressing — inspection-ready results.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="about-section" id="about">
+    <div class="about-text">
+      <div class="section-label">About Us</div>
+      <h2 class="about-title">A <span>Trusted</span> Name<br>in North Chicago</h2>
+      <p class="about-body">Hank's Cleaners has been a fixture of the North Chicago community for years, offering reliable dry cleaning and garment care right on Martin Luther King Jr. Drive. We treat every piece like it's our own — because we know how much your clothes matter to you.</p>
+    </div>
+    <div class="about-stats">
+      <div class="stat-box"><div class="stat-num">4.3★</div><div class="stat-lbl">Yelp Rating</div></div>
+      <div class="stat-box"><div class="stat-num">Local</div><div class="stat-lbl">Family Business</div></div>
+      <div class="stat-box"><div class="stat-num">2+</div><div class="stat-lbl">Core Services</div></div>
+      <div class="stat-box"><div class="stat-num">IL</div><div class="stat-lbl">North Chicago</div></div>
+    </div>
+  </section>
+
+  <section class="contact-section" id="contact">
+    <div class="contact-info">
+      <div class="section-label">Find Us</div>
+      <h2 class="contact-title">Get In <span>Touch</span></h2>
+      <div class="contact-item">
+        <div class="contact-icon">📍</div>
+        <div>
+          <div class="contact-detail-label">Address</div>
+          <div class="contact-detail-value">2219 Martin Luther King Jr Dr North<br>North Chicago, IL 60064</div>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">📞</div>
+        <div>
+          <div class="contact-detail-label">Phone</div>
+          <div class="contact-detail-value"><a href="tel:8476880036">(847) 688-0036</a></div>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">✉️</div>
+        <div>
+          <div class="contact-detail-label">Email</div>
+          <div class="contact-detail-value"><a href="mailto:hankscleanersnc@gmail.com">hankscleanersnc@gmail.com</a></div>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">🗺️</div>
+        <div>
+          <div class="contact-detail-label">Directions</div>
+          <div class="contact-detail-value"><a href="https://maps.google.com/?q=2219+Martin+Luther+King+Jr+Dr+North+Chicago+IL+60064" target="_blank">Open in Google Maps →</a></div>
+        </div>
+      </div>
+    </div>
+    <div class="hours-box">
+      <div class="hours-title">Hours of Operation</div>
+      <div class="hours-row" data-day="Monday"><span class="hours-day">Monday</span><span class="hours-time">8 AM – 6 PM</span></div>
+      <div class="hours-row" data-day="Tuesday"><span class="hours-day">Tuesday</span><span class="hours-time">8 AM – 6 PM</span></div>
+      <div class="hours-row" data-day="Wednesday"><span class="hours-day">Wednesday</span><span class="hours-time">8 AM – 6 PM</span></div>
+      <div class="hours-row" data-day="Thursday"><span class="hours-day">Thursday</span><span class="hours-time">8 AM – 6 PM</span></div>
+      <div class="hours-row" data-day="Friday"><span class="hours-day">Friday</span><span class="hours-time">8 AM – 6 PM</span></div>
+      <div class="hours-row" data-day="Saturday"><span class="hours-day">Saturday</span><span class="hours-time">9 AM – 3 PM</span></div>
+      <div class="hours-row" data-day="Sunday"><span class="hours-day">Sunday</span><span class="hours-time hours-closed">Closed</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-logo">Hank's <span>Cleaners</span></div>
+    <div class="footer-copy">2219 MLK Jr Dr N, North Chicago, IL 60064 &nbsp;·&nbsp; (847) 688-0036</div>
+  </footer>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     VIEW: STAFF LOGIN
+══════════════════════════════════════════════ -->
+<div id="view-login" class="view">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">Hank's <span>Cleaners</span></div>
+        <div class="login-sub">Staff portal</div>
+      </div>
+      <div class="login-body">
+        <p id="login-greeting" class="login-greeting"></p>
+        <p id="login-error" class="login-error">Incorrect password. Please try again.</p>
+        <label class="login-label">Password</label>
+        <input class="login-input" type="password" id="login-pw" placeholder="Enter staff password" onkeydown="if(event.key==='Enter')doLogin()" />
+        <button class="login-btn" onclick="doLogin()">Sign In</button>
+        <p class="login-back"><a onclick="showView('view-site')">← Back to website</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     VIEW: ADMIN PANEL
+══════════════════════════════════════════════ -->
+<div id="view-admin" class="view">
+
+  <!-- Scanner overlay -->
+  <div class="scanner-overlay" id="scanner-overlay">
+    <div class="scanner-box">
+      <div class="scanner-header">
+        <span>Scan Barcode</span>
+        <button class="scanner-close" onclick="closeScanner()">✕</button>
+      </div>
+      <div id="scanner-viewport"></div>
+      <div class="scanner-hint">Point camera at receipt barcode</div>
+      <div class="scanner-result" id="scanner-result">Waiting for scan…</div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <div class="admin-wrap">
+    <div class="admin-nav">
+      <div class="admin-nav-logo">Hank's <span>/ Staff Portal</span></div>
+      <div class="admin-nav-right">
+        <span id="admin-greeting-nav"></span>
+        <button class="admin-logout" onclick="doLogout()">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="admin-body">
+
+      <!-- Notification Panel — primary action -->
+      <div class="notify-panel">
+        <div class="notify-title">Send Customer Notification</div>
+        <div class="notify-form-row">
+          <div>
+            <label class="notify-label">Phone Number</label>
+            <input class="notify-input" type="tel" id="notify-phone" placeholder="(847) 555-0000" />
+          </div>
+          <div>
+            <label class="notify-label">Ticket / Receipt #</label>
+            <div style="display:flex; gap: 8px;">
+              <input class="notify-input" type="text" id="notify-ticket" placeholder="e.g. 00482" style="flex:1;" />
+              <button class="btn-scan" onclick="openScanner()">📷</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label class="notify-label">Notification Type</label>
+          <select class="notify-select" id="notify-type" onchange="updateMessage()">
+            <option value="">— Select a notification type —</option>
+            <option value="ready">Order Ready for Pick-Up</option>
+            <option value="early">Order Ready Early</option>
+            <option value="delayed">Order Delayed</option>
+            <option value="reminder">Pick-Up Reminder</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 8px;">
+          <label class="notify-label">Message Preview</label>
+          <textarea class="notify-textarea" id="notify-msg" rows="4" oninput="updateCharCount()"></textarea>
+        </div>
+
+        <div class="notify-footer">
+          <span class="notify-char" id="notify-chars">Select a notification type above</span>
+          <button class="btn-gold" onclick="sendNotification()">📤 Send Notification</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<style>
+  /* ── GREETING ── */
+  .login-greeting {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--green-mid);
+    margin-bottom: 20px;
+    min-height: 1.4em;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--green-dark);
+    color: var(--gold);
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border-radius: 4px;
+    border-left: 4px solid var(--gold);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    z-index: 9999;
+    opacity: 0;
+    transition: transform 0.35s ease, opacity 0.35s ease;
+    white-space: nowrap;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  /* ── NOTIFY SELECT ── */
+  .notify-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    font-family: 'Lora', serif;
+    font-size: 0.9rem;
+    color: var(--white);
+    background: rgba(255,255,255,0.07);
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .notify-select:focus { border-color: var(--gold); }
+  .notify-select option { background: var(--green-dark); color: var(--white); }
+
+  /* ── SCAN BUTTON ── */
+  .btn-scan {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--white);
+    font-size: 1.1rem;
+    padding: 0 12px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .btn-scan:hover { background: rgba(255,255,255,0.18); }
+</style>
+
+
+<script>
+  // ── Config ──
+  const PASS = 'hcnc2219';
+
+  // ── Greeting logic ──
+  function getGreeting() {
+    const h = new Date().getHours();
+    const greetings = {
+      morning:   ['Good morning!', 'Rise and shine!', 'Morning — great to see you!', 'Good morning, let\'s have a great day!'],
+      afternoon: ['Good afternoon!', 'Hope your day is going well!', 'Good afternoon — how\'s it going?', 'Afternoon! Ready to get to work?'],
+      evening:   ['Good evening!', 'Evening — thanks for being here!', 'Good evening, hope the day went well!', 'Evening shift — you\'ve got this!'],
+      night:     ['Burning the midnight oil?', 'Working late — we appreciate you!', 'Good night shift!', 'Staying late — thank you!']
+    };
+    let pool;
+    if (h >= 5 && h < 12)  pool = greetings.morning;
+    else if (h >= 12 && h < 17) pool = greetings.afternoon;
+    else if (h >= 17 && h < 21) pool = greetings.evening;
+    else pool = greetings.night;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  // ── Pre-generated messages ──
+  const MESSAGES = {
+    ready: (ticket) =>
+      `Hi! Your order${ticket ? ' #' + ticket : ''} at Hank's Cleaners is ready for pick-up. We're open Mon–Fri 8AM–6PM, Sat 9AM–3PM. Questions? Call (847) 688-0036.`,
+    early: (ticket) =>
+      `Great news! Your order${ticket ? ' #' + ticket : ''} at Hank's Cleaners is ready ahead of schedule. Stop by anytime: Mon–Fri 8AM–6PM, Sat 9AM–3PM. Questions? Call (847) 688-0036.`,
+    delayed: (ticket) =>
+      `Hi! We wanted to let you know your order${ticket ? ' #' + ticket : ''} at Hank's Cleaners is running a little behind schedule. We appreciate your patience and will text you as soon as it's ready. Questions? Call (847) 688-0036.`,
+    reminder: (ticket) =>
+      `Friendly reminder from Hank's Cleaners — your order${ticket ? ' #' + ticket : ''} is ready and waiting for pick-up! We're open Mon–Fri 8AM–6PM, Sat 9AM–3PM. See you soon! (847) 688-0036.`
+  };
+
+  // ── View switching ──
+  function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+    if (id === 'view-login') {
+      document.getElementById('login-greeting').textContent = getGreeting();
+    }
+  }
+
+  // ── Auth ──
+  function doLogin() {
+    const pw = document.getElementById('login-pw').value;
+    if (pw === PASS) {
+      document.getElementById('login-pw').value = '';
+      document.getElementById('login-error').style.display = 'none';
+      document.getElementById('admin-greeting-nav').textContent = getGreeting();
+      showView('view-admin');
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  }
+  function doLogout() {
+    resetForm();
+    showView('view-site');
+  }
+
+  // ── Message builder ──
+  function updateMessage() {
+    const type   = document.getElementById('notify-type').value;
+    const ticket = document.getElementById('notify-ticket').value.trim();
+    const msgEl  = document.getElementById('notify-msg');
+    if (!type) { msgEl.value = ''; updateCharCount(); return; }
+    msgEl.value = MESSAGES[type](ticket);
+    updateCharCount();
+  }
+
+  function updateCharCount() {
+    const len = document.getElementById('notify-msg').value.length;
+    if (!len) { document.getElementById('notify-chars').textContent = 'Select a notification type above'; return; }
+    const segs = Math.ceil(len / 160);
+    document.getElementById('notify-chars').textContent = `${len} chars · ${segs} SMS segment${segs > 1 ? 's' : ''}`;
+  }
+
+  // ── Send (Twilio live) ──
+  async function sendNotification() {
+    const phone  = document.getElementById('notify-phone').value.trim();
+    const ticket = document.getElementById('notify-ticket').value.trim();
+    const type   = document.getElementById('notify-type').value;
+    const msg    = document.getElementById('notify-msg').value.trim();
+
+    if (!phone)  { showToast('⚠ Please enter a phone number'); return; }
+    if (!type)   { showToast('⚠ Please select a notification type'); return; }
+    if (!msg)    { showToast('⚠ Message cannot be empty'); return; }
+
+    // Show sending state
+    const btn = document.querySelector('.btn-gold');
+    const originalText = btn.textContent;
+    btn.textContent = 'Sending…';
+    btn.disabled = true;
+
+    try {
+      const response = await fetch('/.netlify/functions/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: PASS,
+          to: phone,
+          body: msg
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        showToast('⚠ Failed to send: ' + (result.error || 'Unknown error'));
+      } else {
+        showToast('✓ Text sent successfully!');
+        resetForm();
+      }
+    } catch (err) {
+      showToast('⚠ Connection error — please try again');
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('notify-phone').value  = '';
+    document.getElementById('notify-ticket').value = '';
+    document.getElementById('notify-type').value   = '';
+    document.getElementById('notify-msg').value    = '';
+    updateCharCount();
+  }
+
+  // ── Toast ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ── Barcode Scanner ──
+  function openScanner() {
+    document.getElementById('scanner-overlay').classList.add('open');
+    document.getElementById('scanner-result').textContent = 'Waiting for scan…';
+    Quagga.init({
+      inputStream: {
+        name: 'Live', type: 'LiveStream',
+        target: document.getElementById('scanner-viewport'),
+        constraints: { facingMode: 'environment' }
+      },
+      decoder: { readers: ['code_128_reader', 'ean_reader', 'code_39_reader', 'upc_reader'] }
+    }, function(err) {
+      if (err) { document.getElementById('scanner-result').textContent = 'Camera unavailable — enter manually.'; return; }
+      Quagga.start();
+    });
+    Quagga.onDetected(function(result) {
+      const code = result.codeResult.code;
+      document.getElementById('scanner-result').textContent = '✓ Found: ' + code;
+      document.getElementById('notify-ticket').value = code;
+      updateMessage();
+      setTimeout(() => closeScanner(), 1200);
+    });
+  }
+  function closeScanner() {
+    document.getElementById('scanner-overlay').classList.remove('open');
+    try { Quagga.stop(); } catch(e) {}
+  }
+
+  // ── Mobile Nav ──
+  function toggleMobileNav() {
+    document.getElementById('nav-dropdown').classList.toggle('open');
+    document.getElementById('nav-hamburger').classList.toggle('open');
+  }
+  function closeMobileNav() {
+    document.getElementById('nav-dropdown').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  }
+
+  // ── Init ──
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const today = days[new Date().getDay()];
+  document.querySelectorAll('.hours-row[data-day]').forEach(row => {
+    if (row.dataset.day === today) row.classList.add('today');
+  });
+  document.getElementById('login-greeting').textContent = getGreeting();
+</script>
+</body>
+</html>
