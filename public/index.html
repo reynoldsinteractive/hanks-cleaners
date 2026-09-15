@@ -4,60 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light only">
-<meta name="theme-color" content="#2A4A2E">
-
-<!-- Primary SEO -->
-<title>Hank's Cleaners — Dry Cleaning & Tailor Repairs in North Chicago, IL</title>
-<meta name="description" content="Hank's Cleaners offers professional dry cleaning, tailor repairs, and uniform services in North Chicago, IL. Trusted by the military community near Great Lakes Naval Station. Mon–Fri 8AM–6PM, Sat 9AM–3PM.">
-<meta name="keywords" content="dry cleaning North Chicago, tailor repairs North Chicago, uniform cleaning Illinois, Hank's Cleaners, laundry service North Chicago, military uniform cleaning, Great Lakes Naval Base cleaners">
-<meta name="robots" content="index, follow">
-<meta name="author" content="Hank's Cleaners">
-<link rel="canonical" href="https://www.hankscleanersnc.com/">
-
-<!-- Open Graph -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://www.hankscleanersnc.com/">
-<meta property="og:title" content="Hank's Cleaners — Dry Cleaning & Tailor Repairs in North Chicago, IL">
-<meta property="og:description" content="Professional dry cleaning, tailor repairs, and uniform services in North Chicago, IL. Trusted by the local military community.">
-<meta property="og:site_name" content="Hank's Cleaners">
-<meta property="og:locale" content="en_US">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hank's Cleaners — North Chicago, IL">
-<meta name="twitter:description" content="Dry cleaning, tailor repairs, and uniform services. Mon–Fri 8AM–6PM, Sat 9AM–3PM.">
-
-<!-- Structured Data -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "DryCleaningOrLaundry",
-  "name": "Hank's Cleaners",
-  "description": "Professional dry cleaning, tailor repairs, neckerchief and patch care, and uniform services in North Chicago, IL.",
-  "url": "https://www.hankscleanersnc.com",
-  "telephone": "+18476880036",
-  "email": "hankscleanersnc@gmail.com",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "2219 Martin Luther King Jr Dr North",
-    "addressLocality": "North Chicago",
-    "addressRegion": "IL",
-    "postalCode": "60064",
-    "addressCountry": "US"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 42.325,
-    "longitude": -87.845
-  },
-  "openingHoursSpecification": [
-    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "08:00", "closes": "18:00" },
-    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "09:00", "closes": "15:00" }
-  ],
-  "priceRange": "$$",
-  "servesCuisine": "Dry Cleaning"
-}
-</script>
+<title>Hank's Cleaners</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 <style>
@@ -684,6 +631,10 @@
   <footer>
     <div class="footer-logo">Hank's <span>Cleaners</span></div>
     <div class="footer-copy">2219 MLK Jr Dr N, North Chicago, IL 60064 &nbsp;·&nbsp; (847) 688-0036</div>
+    <div style="display:flex;gap:20px;">
+      <a href="/terms.html" style="font-size:11px;color:rgba(255,255,255,0.35);text-decoration:none;letter-spacing:0.05em;">Terms &amp; Conditions</a>
+      <a href="/privacy.html" style="font-size:11px;color:rgba(255,255,255,0.35);text-decoration:none;letter-spacing:0.05em;">Privacy Policy</a>
+    </div>
   </footer>
 
 </div>
@@ -935,8 +886,8 @@
     document.getElementById('notify-chars').textContent = `${len} chars · ${segs} SMS segment${segs > 1 ? 's' : ''}`;
   }
 
-  // ── Send (Twilio live) ──
-  async function sendNotification() {
+  // ── Send (Twilio pending) ──
+  function sendNotification() {
     const phone  = document.getElementById('notify-phone').value.trim();
     const ticket = document.getElementById('notify-ticket').value.trim();
     const type   = document.getElementById('notify-type').value;
@@ -946,37 +897,22 @@
     if (!type)   { showToast('⚠ Please select a notification type'); return; }
     if (!msg)    { showToast('⚠ Message cannot be empty'); return; }
 
-    // Show sending state
-    const btn = document.querySelector('.btn-gold');
-    const originalText = btn.textContent;
-    btn.textContent = 'Sending…';
-    btn.disabled = true;
-
-    try {
-      const response = await fetch('/.netlify/functions/send-sms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password: PASS,
-          to: phone,
-          body: msg
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        showToast('⚠ Failed to send: ' + (result.error || 'Unknown error'));
-      } else {
-        showToast('✓ Text sent successfully!');
+    // ── Send via Twilio ──
+    fetch('/.netlify/functions/send-sms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: phone, body: msg, ticket: ticket })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success){
+        showToast('📤 Message sent to ' + phone);
         resetForm();
+      } else {
+        showToast('⚠ Failed to send: ' + (data.error||'Unknown error'));
       }
-    } catch (err) {
-      showToast('⚠ Connection error — please try again');
-    } finally {
-      btn.textContent = originalText;
-      btn.disabled = false;
-    }
+    })
+    .catch(() => showToast('⚠ Could not reach SMS service'));
   }
 
   function resetForm() {
