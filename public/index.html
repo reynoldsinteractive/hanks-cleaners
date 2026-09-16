@@ -695,43 +695,117 @@
 
     <div class="admin-body">
 
-      <!-- Notification Panel — primary action -->
-      <div class="notify-panel">
-        <div class="notify-title">Send Customer Notification</div>
-        <div class="notify-form-row">
-          <div>
-            <label class="notify-label">Phone Number</label>
-            <input class="notify-input" type="tel" id="notify-phone" placeholder="(847) 555-0000" />
+      <!-- Tab Bar -->
+      <div style="display:flex;gap:4px;background:#e8e4d9;border-radius:4px;padding:3px;">
+        <button id="tab-notify" onclick="switchAdminTab('notify')" style="flex:1;font-family:'Oswald',sans-serif;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;padding:8px;border:none;border-radius:3px;cursor:pointer;background:var(--green-dark);color:var(--gold);">Send Notification</button>
+        <button id="tab-customers" onclick="switchAdminTab('customers')" style="flex:1;font-family:'Oswald',sans-serif;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;padding:8px;border:none;border-radius:3px;cursor:pointer;background:none;color:var(--green-dark);">Customers</button>
+      </div>
+
+      <!-- NOTIFICATION PANEL -->
+      <div id="panel-notify">
+        <!-- SMS CONSENT CONTACTS -->
+        <div class="admin-card" id="sms-contacts-card">
+          <div class="admin-card-title">📋 SMS Consent List</div>
+          <div id="sms-contacts-list" style="margin:-4px -8px 14px;border:1px solid #E8E4D9;border-radius:3px;overflow:hidden;">
+            <div style="padding:16px;text-align:center;color:#888;font-size:13px;">Loading contacts...</div>
           </div>
-          <div>
-            <label class="notify-label">Ticket / Receipt #</label>
-            <div style="display:flex; gap: 8px;">
-              <input class="notify-input" type="text" id="notify-ticket" placeholder="e.g. 00482" style="flex:1;" />
-              <button class="btn-scan" onclick="openScanner()">📷</button>
+          <div style="background:#F5F2EA;border:1px solid #E8E4D9;border-radius:3px;padding:16px;">
+            <div style="font-family:'Oswald',sans-serif;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#555;margin-bottom:12px;">Add New Customer — Send Opt-In Request</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+              <div>
+                <label style="font-family:'Oswald',sans-serif;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:#888;display:block;margin-bottom:5px;">Customer Name</label>
+                <input id="optin-name" type="text" placeholder="Jane Smith" style="width:100%;padding:9px 10px;border:1px solid #D8D4C9;font-size:13px;background:#fff;outline:none;font-family:'Lora',serif;"/>
+              </div>
+              <div>
+                <label style="font-family:'Oswald',sans-serif;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:#888;display:block;margin-bottom:5px;">Phone Number *</label>
+                <input id="optin-phone" type="tel" placeholder="(847) 555-0123" style="width:100%;padding:9px 10px;border:1px solid #D8D4C9;font-size:13px;background:#fff;outline:none;font-family:'Lora',serif;"/>
+              </div>
+            </div>
+            <button id="optin-btn" onclick="sendOptIn()" style="background:#1B4332;color:#C9A227;border:none;padding:10px 20px;font-family:'Oswald',sans-serif;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;cursor:pointer;width:100%;transition:background 0.2s;">Send Opt-In Text</button>
+            <div style="font-size:11px;color:#999;margin-top:8px;line-height:1.5;font-style:italic;">"Hank's Cleaners would like to text you when your order is ready. Reply YES to confirm. Msg &amp; data rates may apply. Reply STOP to cancel."</div>
+          </div>
+        </div>
+
+        <div class="notify-panel">
+          <div class="notify-title">Send Order Notification</div>
+          <div style="background:rgba(201,162,39,0.12);border:1px solid rgba(201,162,39,0.3);border-radius:3px;padding:10px 14px;margin-bottom:16px;font-size:0.8rem;color:var(--gold-light);">
+            ⚠ Only customers who have replied YES to the opt-in text can receive notifications.
+            Use the <strong>Customers</strong> tab to send opt-in requests to new numbers.
+          </div>
+          <div class="notify-form-row">
+            <div>
+              <label class="notify-label">Phone Number</label>
+              <input class="notify-input" type="tel" id="notify-phone" placeholder="(847) 555-0000" />
+            </div>
+            <div>
+              <label class="notify-label">Ticket / Receipt #</label>
+              <div style="display:flex; gap: 8px;">
+                <input class="notify-input" type="text" id="notify-ticket" placeholder="e.g. 00482" style="flex:1;" />
+                <button class="btn-scan" onclick="openScanner()">📷</button>
+              </div>
             </div>
           </div>
+
+          <div style="margin-bottom: 16px;">
+            <label class="notify-label">Notification Type</label>
+            <select class="notify-select" id="notify-type" onchange="updateMessage()">
+              <option value="">— Select a notification type —</option>
+              <option value="ready">Order Ready for Pick-Up</option>
+              <option value="early">Order Ready Early</option>
+              <option value="delayed">Order Delayed</option>
+              <option value="reminder">Pick-Up Reminder</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 8px;">
+            <label class="notify-label">Message Preview</label>
+            <textarea class="notify-textarea" id="notify-msg" rows="4" oninput="updateCharCount()"></textarea>
+          </div>
+
+          <div class="notify-footer">
+            <span class="notify-char" id="notify-chars">Select a notification type above</span>
+            <button class="btn-gold" onclick="sendNotification()">📤 Send Notification</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CUSTOMERS PANEL -->
+      <div id="panel-customers" style="display:none;">
+
+        <!-- Add new customer opt-in -->
+        <div class="notify-panel" style="margin-bottom:16px;">
+          <div class="notify-title">Add Customer — Send Opt-In Request</div>
+          <p style="font-size:0.82rem;color:rgba(250,250,247,0.55);margin-bottom:16px;line-height:1.6;">
+            Enter the customer's phone number. They'll receive a text asking them to reply YES to confirm they want order updates from Hank's Cleaners.
+          </p>
+          <div class="notify-form-row">
+            <div>
+              <label class="notify-label">Phone Number *</label>
+              <input class="notify-input" type="tel" id="optin-phone" placeholder="(847) 555-0000"/>
+            </div>
+            <div>
+              <label class="notify-label">Customer Name (optional)</label>
+              <input class="notify-input" type="text" id="optin-name" placeholder="Jane Smith"/>
+            </div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label class="notify-label">Ticket / Order Ref (optional)</label>
+            <input class="notify-input" type="text" id="optin-ticket" placeholder="e.g. 00482" style="max-width:240px;"/>
+          </div>
+          <div class="notify-footer">
+            <span class="notify-char">Customer will receive: "Reply YES to receive order updates from Hank's Cleaners. Msg & data rates may apply. Reply STOP to cancel."</span>
+            <button class="btn-gold" onclick="sendOptIn()">📨 Send Opt-In Request</button>
+          </div>
         </div>
 
-        <div style="margin-bottom: 16px;">
-          <label class="notify-label">Notification Type</label>
-          <select class="notify-select" id="notify-type" onchange="updateMessage()">
-            <option value="">— Select a notification type —</option>
-            <option value="ready">Order Ready for Pick-Up</option>
-            <option value="early">Order Ready Early</option>
-            <option value="delayed">Order Delayed</option>
-            <option value="reminder">Pick-Up Reminder</option>
-          </select>
+        <!-- Customer list -->
+        <div class="admin-card">
+          <div class="admin-card-title">Customer Consent List</div>
+          <div id="customer-list-body" style="font-size:0.85rem;color:#666;font-style:italic;text-align:center;padding:24px;">
+            Loading customers...
+          </div>
         </div>
 
-        <div style="margin-bottom: 8px;">
-          <label class="notify-label">Message Preview</label>
-          <textarea class="notify-textarea" id="notify-msg" rows="4" oninput="updateCharCount()"></textarea>
-        </div>
-
-        <div class="notify-footer">
-          <span class="notify-char" id="notify-chars">Select a notification type above</span>
-          <button class="btn-gold" onclick="sendNotification()">📤 Send Notification</button>
-        </div>
       </div>
 
     </div>
@@ -811,7 +885,8 @@
 
 <script>
   // ── Config ──
-  const PASS = 'hcnc2219';
+  const PASS     = 'hcnc2219';
+  const ADMIN_PW = PASS; // alias used by SMS functions
 
   // ── Greeting logic ──
   function getGreeting() {
@@ -860,6 +935,7 @@
       document.getElementById('login-error').style.display = 'none';
       document.getElementById('admin-greeting-nav').textContent = getGreeting();
       showView('view-admin');
+      loadSmsContacts();
     } else {
       document.getElementById('login-error').style.display = 'block';
     }
@@ -887,7 +963,113 @@
   }
 
   // ── Send (Twilio pending) ──
-  function sendNotification() {
+  // ── Admin Tab Switching ──
+  function switchAdminTab(tab) {
+    document.getElementById('panel-notify').style.display    = tab==='notify'    ? 'block' : 'none';
+    document.getElementById('panel-customers').style.display = tab==='customers' ? 'block' : 'none';
+    document.getElementById('tab-notify').style.background    = tab==='notify'    ? 'var(--green-dark)' : 'none';
+    document.getElementById('tab-notify').style.color         = tab==='notify'    ? 'var(--gold)'       : 'var(--green-dark)';
+    document.getElementById('tab-customers').style.background = tab==='customers' ? 'var(--green-dark)' : 'none';
+    document.getElementById('tab-customers').style.color      = tab==='customers' ? 'var(--gold)'       : 'var(--green-dark)';
+    if(tab==='customers') loadCustomers();
+  }
+
+  // ── Send Opt-In Request ──
+  async function sendOptIn() {
+    const phone = document.getElementById('optin-phone').value.trim();
+    const name  = document.getElementById('optin-name').value.trim();
+    const ticket= document.getElementById('optin-ticket').value.trim();
+    if(!phone){ showToast('⚠ Please enter a phone number'); return; }
+    try {
+      const res = await fetch('/.netlify/functions/send-optin', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ password: ADMIN_PW, phone, customerName: name, ticketRef: ticket })
+      });
+      const data = await res.json();
+      if(data.success){
+        if(data.alreadyApproved){
+          showToast('✓ Customer already opted in — you can send them notifications');
+        } else {
+          showToast('📨 Opt-in request sent — waiting for customer to reply YES');
+        }
+        document.getElementById('optin-phone').value  = '';
+        document.getElementById('optin-name').value   = '';
+        document.getElementById('optin-ticket').value = '';
+        loadCustomers();
+      } else {
+        showToast('⚠ ' + (data.error||'Could not send opt-in request'));
+      }
+    } catch(e) {
+      showToast('⚠ Could not reach server');
+    }
+  }
+
+  // ── Load Customer List ──
+  const SUPABASE_URL = 'https://untigxlmkxhuuvmvjgln.supabase.co'; // UPDATE with Hank's Supabase URL
+  const SUPABASE_KEY = 'YOUR_HANKS_SUPABASE_ANON_KEY';             // UPDATE with Hank's anon key
+
+  async function loadCustomers() {
+    const el = document.getElementById('customer-list-body');
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/sms_contact_summary?order=created_at.desc`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY
+        }
+      });
+      const contacts = await res.json();
+      if(!contacts.length){
+        el.innerHTML = '<p style="text-align:center;padding:20px;font-style:italic;">No customers yet. Send an opt-in request above to add your first customer.</p>';
+        return;
+      }
+      const statusColor = { approved:'#2E7D52', pending:'#C17F2A', opted_out:'#B82020' };
+      el.innerHTML = `<table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="border-bottom:2px solid #e8e4d9;">
+          <th style="font-family:'Oswald',sans-serif;font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;padding:8px 12px;text-align:left;">Phone</th>
+          <th style="font-family:'Oswald',sans-serif;font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;padding:8px 12px;text-align:left;">Name</th>
+          <th style="font-family:'Oswald',sans-serif;font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;padding:8px 12px;text-align:left;">Status</th>
+          <th style="font-family:'Oswald',sans-serif;font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;padding:8px 12px;text-align:left;">Opted In</th>
+          <th style="font-family:'Oswald',sans-serif;font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;padding:8px 12px;text-align:left;">Msgs Sent</th>
+          <th style="font-family:'Oswald',sans-serif;font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:#888;padding:8px 12px;text-align:left;">Action</th>
+        </tr></thead>
+        <tbody>${contacts.map(c=>`<tr style="border-bottom:1px solid #e8e4d9;">
+          <td style="padding:10px 12px;font-size:0.85rem;">${c.phone}</td>
+          <td style="padding:10px 12px;font-size:0.85rem;">${c.customer_name||'—'}</td>
+          <td style="padding:10px 12px;">
+            <span style="font-family:'Oswald',sans-serif;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:${statusColor[c.status]||'#888'};">${c.status}</span>
+          </td>
+          <td style="padding:10px 12px;font-size:0.82rem;color:#888;">${c.opted_in_at ? new Date(c.opted_in_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}</td>
+          <td style="padding:10px 12px;font-size:0.85rem;text-align:center;">${c.notifications_sent||0}</td>
+          <td style="padding:10px 12px;">
+            ${c.status==='approved'
+              ? `<button onclick="quickNotify('${c.phone}')" style="font-family:'Oswald',sans-serif;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--green-dark);color:var(--gold);border:none;padding:5px 12px;cursor:pointer;">Notify</button>`
+              : c.status==='pending'
+              ? `<button onclick="resendOptIn('${c.phone}')" style="font-family:'Oswald',sans-serif;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;background:none;border:1px solid var(--green-mid);color:var(--green-dark);padding:5px 12px;cursor:pointer;">Resend</button>`
+              : '—'
+            }
+          </td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+    } catch(e) {
+      el.innerHTML = '<p style="text-align:center;padding:20px;color:#B82020;">Could not load customers.</p>';
+    }
+  }
+
+  function quickNotify(phone) {
+    // Switch to notify tab and pre-fill phone
+    switchAdminTab('notify');
+    document.getElementById('notify-phone').value = phone;
+    document.getElementById('notify-type').focus();
+    showToast('Phone pre-filled — select notification type and send');
+  }
+
+  async function resendOptIn(phone) {
+    document.getElementById('optin-phone').value = phone;
+    await sendOptIn();
+  }
+
+  async function sendNotification() {
     const phone  = document.getElementById('notify-phone').value.trim();
     const ticket = document.getElementById('notify-ticket').value.trim();
     const type   = document.getElementById('notify-type').value;
@@ -897,22 +1079,117 @@
     if (!type)   { showToast('⚠ Please select a notification type'); return; }
     if (!msg)    { showToast('⚠ Message cannot be empty'); return; }
 
-    // ── Send via Twilio ──
-    fetch('/.netlify/functions/send-sms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to: phone, body: msg, ticket: ticket })
-    })
-    .then(r => r.json())
-    .then(data => {
+    try {
+      const res = await fetch('/.netlify/functions/send-sms', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ password: ADMIN_PW, to: phone, body: msg, ticket })
+      });
+      const data = await res.json();
       if(data.success){
-        showToast('📤 Message sent to ' + phone);
+        showToast('📤 Message sent successfully!');
         resetForm();
+        setTimeout(loadSmsContacts, 1000);
+      } else if(data.error === 'not_approved'){
+        showToast('⚠ Not approved — send an opt-in request first');
       } else {
-        showToast('⚠ Failed to send: ' + (data.error||'Unknown error'));
+        showToast('⚠ ' + (data.error||'Could not send'));
       }
-    })
-    .catch(() => showToast('⚠ Could not reach SMS service'));
+    } catch(e) {
+      showToast('⚠ Could not reach server');
+    }
+  }
+
+  // ── SMS CONTACTS & OPT-IN ──────────────────────────────
+  let smsContacts = [];
+
+  async function loadSmsContacts() {
+    try {
+      const res = await fetch('/.netlify/functions/get-sms-contacts', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ password: ADMIN_PW })
+      });
+      const data = await res.json();
+      smsContacts = data.contacts || [];
+      renderSmsContacts();
+    } catch(e) { console.error('SMS contacts load error', e); }
+  }
+
+  function renderSmsContacts() {
+    const el = document.getElementById('sms-contacts-list');
+    if (!el) return;
+    if (!smsContacts.length) {
+      el.innerHTML = '<div style="padding:20px;text-align:center;color:#888;font-style:italic;font-size:13px;">No SMS contacts yet. Add a number below to send an opt-in request.</div>';
+      return;
+    }
+    const sColor = { approved:'#2E7D52', pending:'#C17F2A', opted_out:'#888580' };
+    const sLabel = { approved:'✓ Approved', pending:'⏳ Pending', opted_out:'✗ Opted Out' };
+    const counts = {
+      approved:  smsContacts.filter(c=>c.status==='approved').length,
+      pending:   smsContacts.filter(c=>c.status==='pending').length,
+      opted_out: smsContacts.filter(c=>c.status==='opted_out').length
+    };
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 16px;background:#F5F2EA;border-bottom:1px solid #E8E4D9;">
+        <div style="text-align:center;"><div style="font-size:22px;font-weight:700;color:#2E7D52;">${counts.approved}</div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-top:2px;">Approved</div></div>
+        <div style="text-align:center;"><div style="font-size:22px;font-weight:700;color:#C17F2A;">${counts.pending}</div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-top:2px;">Pending</div></div>
+        <div style="text-align:center;"><div style="font-size:22px;font-weight:700;color:#888;">${counts.opted_out}</div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-top:2px;">Opted Out</div></div>
+      </div>
+      ${smsContacts.map(c=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #E8E4D9;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#1A1A1A;">${c.customer_name||'—'}</div>
+          <div style="font-family:monospace;font-size:11px;color:#666;margin-top:2px;">${c.phone}</div>
+          ${c.opted_in_at?`<div style="font-size:10px;color:#2E7D52;margin-top:2px;">Confirmed ${new Date(c.opted_in_at).toLocaleDateString()}</div>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:10px;font-weight:700;letter-spacing:0.5px;color:${sColor[c.status]||'#888'};">${sLabel[c.status]||c.status}</span>
+          ${c.status==='approved'?`<button onclick="prefillNotify('${c.phone}','${(c.customer_name||'').replace(/'/g,"\\'")}')" style="background:#1B4332;color:#C9A227;border:none;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:0.5px;border-radius:2px;">SEND UPDATE</button>`:''}
+          ${c.status==='pending'?`<button onclick="resendOptin('${c.phone}')" style="background:transparent;color:#C17F2A;border:1px solid #C17F2A;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:0.5px;border-radius:2px;">RESEND</button>`:''}
+        </div>
+      </div>`).join('')}`;
+  }
+
+  function prefillNotify(phone, name) {
+    document.getElementById('notify-phone').value = phone;
+    document.getElementById('notify-msg').value   = `Hi ${name}! Your order at Hank's Cleaners is ready for pickup. See you soon!`;
+    document.getElementById('notify-type').value  = 'ready';
+    updateCharCount();
+    document.getElementById('notify-phone').scrollIntoView({behavior:'smooth'});
+  }
+
+  async function sendOptIn() {
+    const phone = document.getElementById('optin-phone').value.trim();
+    const name  = document.getElementById('optin-name').value.trim();
+    if (!phone) { showToast('⚠ Please enter a phone number'); return; }
+    const btn = document.getElementById('optin-btn');
+    btn.textContent = 'Sending...'; btn.disabled = true;
+    try {
+      const res = await fetch('/.netlify/functions/send-optin', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ password: ADMIN_PW, phone, customerName: name })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.status==='already_approved' ? '✓ Already approved — use Send Notification' : '📤 Opt-in text sent — waiting for YES reply');
+        document.getElementById('optin-phone').value = '';
+        document.getElementById('optin-name').value  = '';
+        setTimeout(loadSmsContacts, 2000);
+      } else {
+        showToast('⚠ ' + (data.message||data.error||'Could not send'));
+      }
+    } catch(e) { showToast('⚠ Could not reach server'); }
+    finally { btn.textContent = 'Send Opt-In Text'; btn.disabled = false; }
+  }
+
+  async function resendOptin(phone) {
+    try {
+      await fetch('/.netlify/functions/send-optin', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ password: ADMIN_PW, phone })
+      });
+      showToast('📤 Opt-in text resent');
+    } catch(e) { showToast('⚠ Could not resend'); }
   }
 
   function resetForm() {
