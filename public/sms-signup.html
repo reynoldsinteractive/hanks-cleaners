@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMS Text Notifications — Hank's Cleaners</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Lora',serif;background:#F5F2EA;color:#1A1A1A;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+nav{background:#2A4A2E;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:#C9A227;text-decoration:none;letter-spacing:0.05em;}
+.nav-back{font-size:13px;color:rgba(255,255,255,0.65);text-decoration:none;font-family:'Oswald',sans-serif;letter-spacing:0.05em;}
+.nav-back:hover{color:#C9A227;}
+
+.page{max-width:560px;margin:0 auto;padding:48px 24px 64px;}
+
+.page-eyebrow{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#2A4A2E;margin-bottom:10px;}
+.page-title{font-size:28px;font-weight:700;color:#1A1A1A;margin-bottom:8px;line-height:1.2;}
+.page-sub{font-size:14px;color:#666;line-height:1.75;margin-bottom:32px;}
+
+.form-card{background:#fff;border:1px solid #D8D4C9;border-radius:4px;padding:32px;}
+
+.form-group{margin-bottom:18px;}
+.form-label{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#888;display:block;margin-bottom:6px;}
+.form-input{width:100%;padding:11px 13px;border:1.5px solid #D8D4C9;font-family:'Lora',serif;font-size:14px;color:#1A1A1A;outline:none;transition:border-color 0.2s;background:#fff;}
+.form-input:focus{border-color:#2A4A2E;}
+
+/* ─── SMS CONSENT CHECKBOX ────────────────────────────────────────────
+   Contains ALL Twilio/CTIA-required language:
+   ✓ Brand name (Hank's Cleaners)
+   ✓ Message purpose (order-ready notifications)
+   ✓ "Recurring" disclosure
+   ✓ Frequency disclosure
+   ✓ "Message and data rates may apply"
+   ✓ STOP opt-out instruction
+   ✓ HELP instruction
+   ✓ Links to Terms & Conditions and Privacy Policy
+   ✓ Non-sharing/non-marketing statement
+   ✓ Consent not required for purchase
+   ✓ Checkbox is unchecked by default (required: true)
+──────────────────────────────────────────────────────────────────── */
+.consent-box{background:#EEF5EE;border:2px solid #2A4A2E;border-radius:3px;padding:18px;margin-bottom:24px;}
+.consent-label{display:flex;align-items:flex-start;gap:12px;cursor:pointer;}
+.consent-checkbox{
+  width:20px;height:20px;
+  accent-color:#2A4A2E;
+  flex-shrink:0;
+  margin-top:3px;
+  cursor:pointer;
+}
+.consent-text{font-size:13px;color:#1A1A1A;line-height:1.75;}
+.consent-text strong{color:#2A4A2E;}
+.consent-links{margin-top:8px;font-size:12px;color:#555;line-height:1.7;}
+.consent-links a{color:#2A4A2E;text-decoration:underline;}
+.consent-links em{font-style:italic;color:#666;}
+
+.submit-btn{
+  width:100%;
+  background:#2A4A2E;
+  color:#C9A227;
+  border:none;
+  padding:14px 20px;
+  font-family:'Oswald',sans-serif;
+  font-size:14px;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  font-weight:700;
+  cursor:pointer;
+  transition:background 0.2s;
+}
+.submit-btn:hover:not(:disabled){background:#1B3320;}
+.submit-btn:disabled{opacity:0.6;cursor:not-allowed;}
+
+.success-box{display:none;background:#EEF5EE;border:2px solid #2A4A2E;border-radius:3px;padding:32px;text-align:center;margin-top:0;}
+.success-box.show{display:block;}
+.success-icon{font-size:36px;margin-bottom:12px;}
+.success-title{font-family:'Oswald',sans-serif;font-size:18px;letter-spacing:0.1em;text-transform:uppercase;color:#2A4A2E;margin-bottom:8px;}
+.success-sub{font-size:13px;color:#444;line-height:1.7;}
+
+.info-strip{background:#fff;border:1px solid #D8D4C9;border-radius:3px;padding:20px 24px;margin-top:24px;}
+.info-strip-title{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:14px;}
+.info-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;font-size:12px;color:#555;line-height:1.65;}
+.info-row:last-child{margin-bottom:0;}
+.info-label{color:#2A4A2E;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;flex-shrink:0;width:72px;}
+
+footer{background:#2A4A2E;padding:24px;text-align:center;margin-top:48px;}
+footer p{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.06em;color:rgba(255,255,255,0.45);line-height:2;}
+footer a{color:rgba(255,255,255,0.45);text-decoration:none;}
+footer a:hover{color:#C9A227;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-brand">Hank's Cleaners</a>
+  <a href="/" class="nav-back">← Back to website</a>
+</nav>
+
+<div class="page">
+
+  <div class="page-eyebrow">SMS Text Notifications</div>
+  <h1 class="page-title">Get Texted When Your Order Is Ready</h1>
+  <p class="page-sub">Sign up below and we'll send you a text message when your dry cleaning or laundry is ready for pickup. No spam. No marketing. Just a simple heads-up so you're not guessing.</p>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       NETLIFY FORM — submits to Netlify Forms for staff record-keeping.
+       Staff then uses the admin panel to trigger the Twilio opt-in flow.
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="form-card">
+    <form name="sms-optin" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="sms-form">
+      <input type="hidden" name="form-name" value="sms-optin"/>
+      <p style="display:none;"><label>Don't fill this out: <input name="bot-field"/></label></p>
+
+      <div class="form-group">
+        <label class="form-label" for="optin-name">Your Name</label>
+        <input class="form-input" type="text" id="optin-name" name="name" placeholder="Jane Smith" required autocomplete="name"/>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="optin-phone">Mobile Phone Number</label>
+        <input class="form-input" type="tel" id="optin-phone" name="phone" placeholder="(847) 555-0123" required autocomplete="tel"/>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════
+           THE COMPLIANCE CHECKBOX
+           Unchecked by default. Required. Contains full CTIA disclosure.
+           This is what Twilio reviewers need to see to approve A2P 10DLC.
+           ═══════════════════════════════════════════════════════════ -->
+      <div class="consent-box">
+        <label class="consent-label">
+          <input
+            class="consent-checkbox"
+            type="checkbox"
+            name="sms_consent"
+            id="sms-consent"
+            value="yes"
+            required
+          />
+          <div class="consent-text">
+            <strong>Yes, I want to receive text notifications from Hank's Cleaners.</strong>
+
+            <div style="margin-top:8px;">
+              By checking this box, I agree to receive <strong>recurring transactional SMS text message notifications</strong> from <strong>Hank's Cleaners</strong> (2219 Martin Luther King Jr Dr N, North Chicago, IL 60064) informing me when my dry cleaning or laundry order is ready for pickup. Message frequency varies — approximately <strong>1–2 messages per order</strong>. <strong>Message and data rates may apply.</strong>
+            </div>
+
+            <div class="consent-links">
+              To stop receiving messages, reply <strong>STOP</strong> to any text at any time.<br/>
+              For help, reply <strong>HELP</strong> or call <a href="tel:8476880036">(847) 688-0036</a>.<br/>
+              Consent is not a condition of any purchase or service.<br/>
+              <a href="/terms.html" target="_blank">Terms &amp; Conditions</a> &nbsp;&middot;&nbsp; <a href="/privacy.html" target="_blank">Privacy Policy</a><br/>
+              <em>Your mobile number will not be shared with third parties or used for marketing purposes.</em>
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">Sign Up for Text Notifications</button>
+    </form>
+
+    <div class="success-box" id="success-box">
+      <div class="success-icon">📱</div>
+      <div class="success-title">You're Signed Up!</div>
+      <div class="success-sub">
+        We'll text you when your order is ready for pickup.<br/>
+        You can reply <strong>STOP</strong> at any time to cancel.<br/><br/>
+        Thank you for choosing Hank's Cleaners!
+      </div>
+    </div>
+  </div>
+
+  <div class="info-strip">
+    <div class="info-strip-title">About This Service</div>
+    <div class="info-row"><span class="info-label">Purpose</span>Order-ready pickup notifications only — no marketing messages</div>
+    <div class="info-row"><span class="info-label">Frequency</span>1–2 messages per order</div>
+    <div class="info-row"><span class="info-label">Opt Out</span>Reply STOP to any message to cancel immediately</div>
+    <div class="info-row"><span class="info-label">Help</span>Reply HELP or call (847) 688-0036</div>
+    <div class="info-row"><span class="info-label">Rates</span>Message and data rates may apply</div>
+    <div class="info-row"><span class="info-label">Privacy</span>Your number is never sold or shared for marketing</div>
+  </div>
+
+</div>
+
+<footer>
+  <p>
+    &copy; 2026 Hank's Cleaners &nbsp;&middot;&nbsp;
+    2219 Martin Luther King Jr Dr N, North Chicago, IL 60064 &nbsp;&middot;&nbsp;
+    <a href="tel:8476880036">(847) 688-0036</a><br/>
+    <a href="/terms.html">Terms &amp; Conditions</a> &nbsp;&middot;&nbsp;
+    <a href="/privacy.html">Privacy Policy</a>
+  </p>
+</footer>
+
+<script>
+(function(){
+  var form = document.getElementById('sms-form');
+  var btn  = document.getElementById('submit-btn');
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    var checkbox = document.getElementById('sms-consent');
+    if(!checkbox.checked){
+      alert('Please check the consent box to sign up for text notifications.');
+      return;
+    }
+
+    btn.textContent = 'Submitting…';
+    btn.disabled = true;
+
+    var formData = new FormData(form);
+    fetch('/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: new URLSearchParams(formData).toString()
+    })
+    .then(function(res){
+      if(res.ok){
+        form.style.display = 'none';
+        document.getElementById('success-box').classList.add('show');
+      } else {
+        throw new Error('Server error');
+      }
+    })
+    .catch(function(){
+      btn.textContent = 'Sign Up for Text Notifications';
+      btn.disabled = false;
+      alert('Something went wrong. Please try again or call us at (847) 688-0036.');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
