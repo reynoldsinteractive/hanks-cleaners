@@ -40,7 +40,7 @@ nav{background:#2A4A2E;padding:16px 24px;display:flex;align-items:center;justify
    ✓ Links to Terms & Conditions and Privacy Policy
    ✓ Non-sharing/non-marketing statement
    ✓ Consent not required for purchase
-   ✓ Checkbox is unchecked by default (required: true)
+   ✓ Checkbox is unchecked by default, optional (JS validates)
 ──────────────────────────────────────────────────────────────────── */
 .consent-box{background:#EEF5EE;border:2px solid #2A4A2E;border-radius:3px;padding:18px;margin-bottom:24px;}
 .consent-label{display:flex;align-items:flex-start;gap:12px;cursor:pointer;}
@@ -56,6 +56,9 @@ nav{background:#2A4A2E;padding:16px 24px;display:flex;align-items:center;justify
 .consent-links{margin-top:8px;font-size:12px;color:#555;line-height:1.7;}
 .consent-links a{color:#2A4A2E;text-decoration:underline;}
 .consent-links em{font-style:italic;color:#666;}
+.consent-error{display:none;color:#B82020;font-size:12px;margin-top:8px;font-family:'Oswald',sans-serif;letter-spacing:0.03em;}
+.consent-error.show{display:block;}
+.optional-note{font-size:12px;color:#888;text-align:center;margin-top:14px;line-height:1.6;}
 
 .submit-btn{
   width:100%;
@@ -104,6 +107,7 @@ footer a:hover{color:#C9A227;}
   <div class="page-eyebrow">SMS Text Notifications</div>
   <h1 class="page-title">Get Texted When Your Order Is Ready</h1>
   <p class="page-sub">Sign up below and we'll send you a text message when your dry cleaning or laundry is ready for pickup. No spam. No marketing. Just a simple heads-up so you're not guessing.</p>
+  <p class="page-sub" style="background:#fff;border:1px solid #D8D4C9;border-left:4px solid #C9A227;padding:12px 16px;margin-top:-16px;margin-bottom:32px;font-size:13px;"><strong>SMS notifications are completely optional.</strong> You can drop off and pick up your orders without signing up — this is just a convenience service for customers who want a text reminder.</p>
 
   <!-- ═══════════════════════════════════════════════════════════════
        NETLIFY FORM — submits to Netlify Forms for staff record-keeping.
@@ -126,8 +130,9 @@ footer a:hover{color:#C9A227;}
 
       <!-- ═══════════════════════════════════════════════════════════
            THE COMPLIANCE CHECKBOX
-           Unchecked by default. Required. Contains full CTIA disclosure.
-           This is what Twilio reviewers need to see to approve A2P 10DLC.
+           Unchecked by default. NOT required at HTML level (Error 30923 fix).
+           JS validates and shows inline error if unchecked on submit.
+           SMS opt-in is voluntary — customer can skip and still use the service.
            ═══════════════════════════════════════════════════════════ -->
       <div class="consent-box">
         <label class="consent-label">
@@ -137,7 +142,6 @@ footer a:hover{color:#C9A227;}
             name="sms_consent"
             id="sms-consent"
             value="yes"
-            required
           />
           <div class="consent-text">
             <strong>Yes, I want to receive text notifications from Hank's Cleaners.</strong>
@@ -155,9 +159,11 @@ footer a:hover{color:#C9A227;}
             </div>
           </div>
         </label>
+        <div class="consent-error" id="consent-error">Please check the box above to sign up for text notifications.</div>
       </div>
 
       <button type="submit" class="submit-btn" id="submit-btn">Sign Up for Text Notifications</button>
+      <p class="optional-note">Text notifications are optional. You may skip this form and still use all of Hank's Cleaners' services.</p>
     </form>
 
     <div class="success-box" id="success-box">
@@ -202,10 +208,13 @@ footer a:hover{color:#C9A227;}
     e.preventDefault();
 
     var checkbox = document.getElementById('sms-consent');
+    var consentError = document.getElementById('consent-error');
     if(!checkbox.checked){
-      alert('Please check the consent box to sign up for text notifications.');
+      consentError.classList.add('show');
+      checkbox.focus();
       return;
     }
+    consentError.classList.remove('show');
 
     btn.textContent = 'Submitting…';
     btn.disabled = true;
