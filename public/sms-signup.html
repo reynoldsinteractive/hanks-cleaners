@@ -125,7 +125,7 @@ footer a:hover{color:#C9A227;}
 
       <div class="form-group">
         <label class="form-label" for="optin-phone">Mobile Phone Number</label>
-        <input class="form-input" type="tel" id="optin-phone" name="phone" placeholder="(847) 555-0123" required autocomplete="tel"/>
+        <input class="form-input" type="tel" id="optin-phone" name="phone" placeholder="(847) 555-0123" autocomplete="tel"/>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════
@@ -209,12 +209,21 @@ footer a:hover{color:#C9A227;}
 
     var checkbox = document.getElementById('sms-consent');
     var consentError = document.getElementById('consent-error');
+    var phone = document.getElementById('optin-phone');
+
     if(!checkbox.checked){
       consentError.classList.add('show');
       checkbox.focus();
       return;
     }
     consentError.classList.remove('show');
+
+    if(!phone.value.trim()){
+      phone.focus();
+      phone.style.borderColor = '#B82020';
+      return;
+    }
+    phone.style.borderColor = '';
 
     btn.textContent = 'Submitting…';
     btn.disabled = true;
