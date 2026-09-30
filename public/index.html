@@ -808,6 +808,40 @@
         </div>
       </div>
 
+      <!-- ── SMS CONTACTS ── -->
+      <div class="admin-card" id="contacts-card">
+        <div class="admin-card-title">
+          SMS Contacts
+          <span style="font-size:0.7rem;font-weight:400;letter-spacing:0.05em;color:#aaa;text-transform:none;margin-left:4px;" id="contacts-summary"></span>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="contacts-tabs">
+          <button class="contacts-tab active" id="tab-active" onclick="switchTab('active')">Opted In</button>
+          <button class="contacts-tab" id="tab-opted_out" onclick="switchTab('opted_out')">Opted Out</button>
+        </div>
+
+        <div id="contacts-loading" class="contacts-empty">Loading contacts…</div>
+        <div id="contacts-empty"  class="contacts-empty" style="display:none;">No contacts yet.</div>
+
+        <table class="contacts-table" id="contacts-table" style="display:none;">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Date Signed Up</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="contacts-tbody"></tbody>
+        </table>
+
+        <div style="text-align:right;margin-top:12px;">
+          <a href="/sms-signup.html" target="_blank" class="contacts-signup-link">+ Open Customer Sign-Up Page →</a>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -880,6 +914,24 @@
     flex-shrink: 0;
   }
   .btn-scan:hover { background: rgba(255,255,255,0.18); }
+
+  /* ── SMS CONTACTS TABLE ── */
+  .contacts-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #e8e4d9; }
+  .contacts-tab { background: none; border: none; padding: 8px 20px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: #aaa; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; }
+  .contacts-tab.active { color: var(--green-dark); border-bottom-color: var(--green-dark); }
+  .contacts-empty { font-size: 0.85rem; color: #aaa; font-style: italic; padding: 20px 0; text-align: center; }
+  .contacts-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .contacts-table th { font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: #aaa; text-align: left; padding: 6px 10px; border-bottom: 1px solid #e8e4d9; }
+  .contacts-table td { padding: 10px 10px; border-bottom: 1px solid #f0ede4; vertical-align: middle; }
+  .contacts-table tr:last-child td { border-bottom: none; }
+  .contacts-table tr:hover td { background: #faf8f3; }
+  .badge-active { display: inline-block; background: #eef5ee; color: #2A4A2E; font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 20px; }
+  .badge-out    { display: inline-block; background: #f5eeee; color: #8b2020; font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 20px; }
+  .contacts-action-btn { background: none; border: 1px solid #ddd; padding: 4px 10px; font-size: 0.72rem; font-family: 'Oswald', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; color: #666; border-radius: 2px; transition: all 0.15s; }
+  .contacts-action-btn:hover { border-color: #999; color: #333; }
+  .contacts-action-btn.restore:hover { border-color: var(--green-dark); color: var(--green-dark); }
+  .contacts-signup-link { font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green-mid); text-decoration: none; }
+  .contacts-signup-link:hover { text-decoration: underline; }
 </style>
 
 
@@ -934,6 +986,7 @@
       document.getElementById('login-error').style.display = 'none';
       document.getElementById('admin-greeting-nav').textContent = getGreeting();
       showView('view-admin');
+      loadContacts();
     } else {
       document.getElementById('login-error').style.display = 'block';
     }
@@ -941,6 +994,126 @@
   function doLogout() {
     resetForm();
     showView('view-site');
+  }
+
+  // ── SMS Contacts ──
+  let contactsCurrentTab = 'active';
+  let allContacts = [];
+
+  function switchTab(tab) {
+    contactsCurrentTab = tab;
+    document.querySelectorAll('.contacts-tab').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById('tab-' + tab).classList.add('active');
+    renderContacts();
+  }
+
+  async function loadContacts() {
+    document.getElementById('contacts-loading').style.display = 'block';
+    document.getElementById('contacts-empty').style.display   = 'none';
+    document.getElementById('contacts-table').style.display   = 'none';
+
+    try {
+      const res = await fetch('/.netlify/functions/get-sms-contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: PASS })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      allContacts = data.contacts || [];
+      updateContactsSummary();
+      renderContacts();
+    } catch(e) {
+      console.error('loadContacts:', e);
+      document.getElementById('contacts-loading').textContent = 'Could not load contacts.';
+    }
+  }
+
+  function updateContactsSummary() {
+    const active = allContacts.filter(function(c){ return c.status === 'active'; }).length;
+    const out    = allContacts.filter(function(c){ return c.status === 'opted_out'; }).length;
+    document.getElementById('contacts-summary').textContent =
+      active + ' opted in' + (out ? ', ' + out + ' opted out' : '');
+  }
+
+  function renderContacts() {
+    const filtered = allContacts.filter(function(c){ return c.status === contactsCurrentTab; });
+    document.getElementById('contacts-loading').style.display = 'none';
+
+    if (filtered.length === 0) {
+      document.getElementById('contacts-empty').style.display  = 'block';
+      document.getElementById('contacts-table').style.display  = 'none';
+      document.getElementById('contacts-empty').textContent    =
+        contactsCurrentTab === 'active' ? 'No opted-in contacts yet.' : 'No opted-out contacts.';
+      return;
+    }
+
+    document.getElementById('contacts-empty').style.display = 'none';
+    document.getElementById('contacts-table').style.display = 'table';
+
+    const tbody = document.getElementById('contacts-tbody');
+    tbody.innerHTML = filtered.map(function(c){
+      const date = c.opted_in_at
+        ? new Date(c.opted_in_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+        : '—';
+      const actionLabel = c.status === 'active' ? 'Remove' : 'Restore';
+      const actionClass = c.status === 'active' ? '' : ' restore';
+      const badge = c.status === 'active'
+        ? '<span class="badge-active">Active</span>'
+        : '<span class="badge-out">Opted Out</span>';
+
+      // Format phone for display
+      const p = c.phone.replace(/^\+1/, '');
+      const display = p.length === 10
+        ? '(' + p.slice(0,3) + ') ' + p.slice(3,6) + '-' + p.slice(6)
+        : c.phone;
+
+      // Fill phone into notification form when clicked
+      return '<tr>' +
+        '<td>' + escHtml(c.name) + '</td>' +
+        '<td><a href="javascript:void(0)" onclick="usePhone(\'' + escHtml(c.phone) + '\')" title="Fill into notification form" style="color:var(--green-mid);text-decoration:none;">' + display + '</a></td>' +
+        '<td>' + date + '</td>' +
+        '<td>' + badge + '</td>' +
+        '<td><button class="contacts-action-btn' + actionClass + '" onclick="toggleContact(\'' + escHtml(c.phone) + '\',\'' + (c.status === 'active' ? 'opted_out' : 'active') + '\')">' + actionLabel + '</button></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function usePhone(phone) {
+    // Strip to 10 digits for display
+    const digits = phone.replace(/^\+1/, '');
+    document.getElementById('notify-phone').value = digits;
+    document.getElementById('notify-phone').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  async function toggleContact(phone, newStatus) {
+    try {
+      const res = await fetch('/.netlify/functions/get-sms-contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: PASS, action: 'update', phone: phone, status: newStatus })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      // Update locally
+      allContacts = allContacts.map(function(c){
+        if (c.phone === phone) {
+          return Object.assign({}, c, {
+            status: newStatus,
+            opted_out_at: newStatus === 'opted_out' ? new Date().toISOString() : null
+          });
+        }
+        return c;
+      });
+      updateContactsSummary();
+      renderContacts();
+    } catch(e) {
+      alert('Could not update contact. Try again.');
+    }
   }
 
   // ── Message builder ──

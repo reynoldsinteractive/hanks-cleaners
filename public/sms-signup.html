@@ -114,9 +114,7 @@ footer a:hover{color:#C9A227;}
        Staff then uses the admin panel to trigger the Twilio opt-in flow.
        ═══════════════════════════════════════════════════════════════ -->
   <div class="form-card">
-    <form name="sms-optin" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="sms-form">
-      <input type="hidden" name="form-name" value="sms-optin"/>
-      <p style="display:none;"><label>Don't fill this out: <input name="bot-field"/></label></p>
+    <form id="sms-form">
 
       <div class="form-group">
         <label class="form-label" for="optin-name">Your Name</label>
@@ -125,7 +123,7 @@ footer a:hover{color:#C9A227;}
 
       <div class="form-group">
         <label class="form-label" for="optin-phone">Mobile Phone Number</label>
-        <input class="form-input" type="tel" id="optin-phone" name="phone" placeholder="(847) 555-0123" autocomplete="tel"/>
+        <input class="form-input" type="tel" id="optin-phone" name="phone" placeholder="(847) 555-0123" required autocomplete="tel"/>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════
@@ -210,7 +208,9 @@ footer a:hover{color:#C9A227;}
     var checkbox = document.getElementById('sms-consent');
     var consentError = document.getElementById('consent-error');
     var phone = document.getElementById('optin-phone');
+    var name  = document.getElementById('optin-name');
 
+    // Consent must come first
     if(!checkbox.checked){
       consentError.classList.add('show');
       checkbox.focus();
@@ -218,6 +218,7 @@ footer a:hover{color:#C9A227;}
     }
     consentError.classList.remove('show');
 
+    // Phone required if consenting
     if(!phone.value.trim()){
       phone.focus();
       phone.style.borderColor = '#B82020';
@@ -228,21 +229,26 @@ footer a:hover{color:#C9A227;}
     btn.textContent = 'Submitting…';
     btn.disabled = true;
 
-    var formData = new FormData(form);
-    fetch('/', {
+    fetch('/.netlify/functions/save-contact', {
       method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: new URLSearchParams(formData).toString()
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name: name.value.trim(),
+        phone: phone.value.trim(),
+        sms_consent: checkbox.checked ? 'yes' : 'no'
+      })
     })
-    .then(function(res){
-      if(res.ok){
+    .then(function(res){ return res.json().then(function(d){ return {ok: res.ok, data: d}; }); })
+    .then(function(r){
+      if(r.ok){
         form.style.display = 'none';
         document.getElementById('success-box').classList.add('show');
       } else {
-        throw new Error('Server error');
+        throw new Error(r.data.error || 'Server error');
       }
     })
-    .catch(function(){
+    .catch(function(err){
+      console.error(err);
       btn.textContent = 'Sign Up for Text Notifications';
       btn.disabled = false;
       alert('Something went wrong. Please try again or call us at (847) 688-0036.');
