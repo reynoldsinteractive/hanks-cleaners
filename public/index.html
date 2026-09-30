@@ -353,6 +353,12 @@
   .login-error { font-size: 0.82rem; color: #c0392b; margin-bottom: 16px; font-style: italic; display: none; }
   .login-back { text-align: center; margin-top: 16px; font-size: 0.8rem; color: #999; }
   .login-back a { color: var(--green-mid); text-decoration: none; cursor: pointer; }
+  .sms-shortcut-btn { display: block; width: 100%; padding: 13px 16px; background: var(--gold); color: var(--green-dark); font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; text-align: center; text-decoration: none; border-radius: 3px; margin-bottom: 6px; transition: background 0.2s; }
+  .sms-shortcut-btn:hover { background: #d4aa2b; }
+  .sms-shortcut-note { font-size: 0.72rem; color: #aaa; text-align: center; margin-bottom: 20px; font-style: italic; }
+  .login-divider { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: #e0dbd0; }
+  .login-divider span { font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: #bbb; white-space: nowrap; }
 
   /* ── ADMIN ── */
   .admin-wrap { min-height: 100vh; background: #f0ede4; }
@@ -711,6 +717,15 @@
       </div>
       <div class="login-body">
         <p id="login-greeting" class="login-greeting"></p>
+
+        <!-- SMS Signup shortcut — no login needed -->
+        <a href="/sms-signup.html" class="sms-shortcut-btn">
+          📱 Sign Customer Up for Text Notifications
+        </a>
+        <p class="sms-shortcut-note">No login required — share this with customers at the counter</p>
+
+        <div class="login-divider"><span>Staff Login</span></div>
+
         <p id="login-error" class="login-error">Incorrect password. Please try again.</p>
         <label class="login-label">Password</label>
         <input class="login-input" type="password" id="login-pw" placeholder="Enter staff password" onkeydown="if(event.key==='Enter')doLogin()" />
